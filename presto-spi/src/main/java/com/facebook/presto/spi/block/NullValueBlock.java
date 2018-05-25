@@ -130,30 +130,35 @@ public class NullValueBlock
     @Override
     public long getLong(int position, int offset)
     {
+        checkReadablePosition(position);
         return 0;
     }
 
     @Override
     public byte getByte(int position, int offset)
     {
+        checkReadablePosition(position);
         return 0;
     }
 
     @Override
     public short getShort(int position, int offset)
     {
+        checkReadablePosition(position);
         return 0;
     }
 
     @Override
     public int getInt(int position, int offset)
     {
+        checkReadablePosition(position);
         return 0;
     }
 
     @Override
     public Slice getSlice(int position, int offset, int length)
     {
+        checkReadablePosition(position);
         return Slices.EMPTY_SLICE;
     }
 }
