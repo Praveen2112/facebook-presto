@@ -13,6 +13,8 @@
  */
 package com.facebook.presto.spi.block;
 
+import io.airlift.slice.Slice;
+import io.airlift.slice.Slices;
 import org.openjdk.jol.info.ClassLayout;
 
 import java.util.function.BiConsumer;
@@ -122,5 +124,36 @@ public class NullValueBlock
         if (position < 0 || position >= getPositionCount()) {
             throw new IllegalArgumentException("position is not valid");
         }
+    }
+
+    //For hashing purpose and for accessing null values
+    @Override
+    public long getLong(int position, int offset)
+    {
+        return 0;
+    }
+
+    @Override
+    public byte getByte(int position, int offset)
+    {
+        return 0;
+    }
+
+    @Override
+    public short getShort(int position, int offset)
+    {
+        return 0;
+    }
+
+    @Override
+    public int getInt(int position, int offset)
+    {
+        return 0;
+    }
+
+    @Override
+    public Slice getSlice(int position, int offset, int length)
+    {
+        return Slices.EMPTY_SLICE;
     }
 }
