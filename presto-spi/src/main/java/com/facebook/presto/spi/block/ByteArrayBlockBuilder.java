@@ -201,9 +201,10 @@ public class ByteArrayBlockBuilder
     {
         checkArrayRange(positions, offset, length);
 
-        if (hasNonNullValue) {
+        if (!hasNonNullValue) {
             return new NullValueBlock(positionCount);
         }
+
         boolean[] newValueIsNull = new boolean[length];
         byte[] newValues = new byte[length];
         for (int i = 0; i < length; i++) {
@@ -220,7 +221,7 @@ public class ByteArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
-        if (hasNonNullValue) {
+        if (!hasNonNullValue) {
             return new NullValueBlock(positionCount);
         }
         return new ByteArrayBlock(positionOffset, length, valueIsNull, values);
@@ -231,7 +232,7 @@ public class ByteArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
-        if (hasNonNullValue) {
+        if (!hasNonNullValue) {
             return new NullValueBlock(positionCount);
         }
         boolean[] newValueIsNull = Arrays.copyOfRange(valueIsNull, positionOffset, positionOffset + length);
