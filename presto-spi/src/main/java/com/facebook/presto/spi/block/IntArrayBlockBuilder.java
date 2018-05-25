@@ -37,6 +37,7 @@ public class IntArrayBlockBuilder
     private int initialEntryCount;
 
     private int positionCount;
+    private boolean hasNonNullValue;
 
     // it is assumed that these arrays are the same length
     private boolean[] valueIsNull = new boolean[0];
@@ -62,6 +63,7 @@ public class IntArrayBlockBuilder
         values[positionCount] = value;
 
         positionCount++;
+        hasNonNullValue = true;
         if (blockBuilderStatus != null) {
             blockBuilderStatus.addBytes(Byte.BYTES + Integer.BYTES);
         }
@@ -93,7 +95,12 @@ public class IntArrayBlockBuilder
     @Override
     public Block build()
     {
-        return new IntArrayBlock(positionCount, valueIsNull, values);
+        if (hasNonNullValue) {
+            return new IntArrayBlock(positionCount, valueIsNull, values);
+        }
+        else {
+            return new NullValueBlock(positionCount);
+        }
     }
 
     @Override
@@ -198,6 +205,10 @@ public class IntArrayBlockBuilder
     {
         checkArrayRange(positions, offset, length);
 
+        if (!hasNonNullValue) {
+            return new NullValueBlock(length);
+        }
+
         boolean[] newValueIsNull = new boolean[length];
         int[] newValues = new int[length];
         for (int i = 0; i < length; i++) {
@@ -214,6 +225,9 @@ public class IntArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
+        if (!hasNonNullValue) {
+            return new NullValueBlock(length);
+        }
         return new IntArrayBlock(positionOffset, length, valueIsNull, values);
     }
 
@@ -222,6 +236,9 @@ public class IntArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
+        if (!hasNonNullValue) {
+            return new NullValueBlock(length);
+        }
         boolean[] newValueIsNull = Arrays.copyOfRange(valueIsNull, positionOffset, positionOffset + length);
         int[] newValues = Arrays.copyOfRange(values, positionOffset, positionOffset + length);
         return new IntArrayBlock(length, newValueIsNull, newValues);

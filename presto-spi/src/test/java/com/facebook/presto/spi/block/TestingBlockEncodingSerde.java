@@ -60,6 +60,7 @@ public final class TestingBlockEncodingSerde
         addBlockEncoding(new SingleRowBlockEncoding());
         addBlockEncoding(new RunLengthBlockEncoding());
         addBlockEncoding(new LazyBlockEncoding());
+        addBlockEncoding(new NullValueBlockEncoding());
 
         for (BlockEncoding blockEncoding : requireNonNull(blockEncodings, "blockEncodings is null")) {
             addBlockEncoding(blockEncoding);

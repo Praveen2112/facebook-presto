@@ -37,6 +37,7 @@ public class ShortArrayBlockBuilder
     private int initialEntryCount;
 
     private int positionCount;
+    private boolean hasNonNullValue;
 
     // it is assumed that these arrays are the same length
     private boolean[] valueIsNull = new boolean[0];
@@ -60,6 +61,7 @@ public class ShortArrayBlockBuilder
         }
 
         values[positionCount] = (short) value;
+        hasNonNullValue = true;
 
         positionCount++;
         if (blockBuilderStatus != null) {
@@ -93,7 +95,12 @@ public class ShortArrayBlockBuilder
     @Override
     public Block build()
     {
-        return new ShortArrayBlock(positionCount, valueIsNull, values);
+        if (hasNonNullValue) {
+            return new ShortArrayBlock(positionCount, valueIsNull, values);
+        }
+        else {
+            return new NullValueBlock(positionCount);
+        }
     }
 
     @Override
@@ -198,6 +205,9 @@ public class ShortArrayBlockBuilder
     {
         checkArrayRange(positions, offset, length);
 
+        if (!hasNonNullValue) {
+            return new NullValueBlock(length);
+        }
         boolean[] newValueIsNull = new boolean[length];
         short[] newValues = new short[length];
         for (int i = 0; i < length; i++) {
@@ -214,6 +224,9 @@ public class ShortArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
+        if (!hasNonNullValue) {
+            return new NullValueBlock(length);
+        }
         return new ShortArrayBlock(positionOffset, length, valueIsNull, values);
     }
 
@@ -222,6 +235,9 @@ public class ShortArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
+        if (!hasNonNullValue) {
+            return new NullValueBlock(length);
+        }
         boolean[] newValueIsNull = Arrays.copyOfRange(valueIsNull, positionOffset, positionOffset + length);
         short[] newValues = Arrays.copyOfRange(values, positionOffset, positionOffset + length);
         return new ShortArrayBlock(length, newValueIsNull, newValues);

@@ -38,6 +38,7 @@ public class LongArrayBlockBuilder
     private int initialEntryCount;
 
     private int positionCount;
+    private boolean hasNonNullValue;
 
     // it is assumed that these arrays are the same length
     private boolean[] valueIsNull = new boolean[0];
@@ -63,6 +64,8 @@ public class LongArrayBlockBuilder
         values[positionCount] = value;
 
         positionCount++;
+        hasNonNullValue = true;
+
         if (blockBuilderStatus != null) {
             blockBuilderStatus.addBytes(Byte.BYTES + Long.BYTES);
         }
@@ -94,7 +97,12 @@ public class LongArrayBlockBuilder
     @Override
     public Block build()
     {
-        return new LongArrayBlock(positionCount, valueIsNull, values);
+        if (hasNonNullValue) {
+            return new LongArrayBlock(positionCount, valueIsNull, values);
+        }
+        else {
+            return new NullValueBlock(positionCount);
+        }
     }
 
     @Override
@@ -245,6 +253,9 @@ public class LongArrayBlockBuilder
     {
         checkArrayRange(positions, offset, length);
 
+        if (!hasNonNullValue) {
+            return new NullValueBlock(length);
+        }
         boolean[] newValueIsNull = new boolean[length];
         long[] newValues = new long[length];
         for (int i = 0; i < length; i++) {
@@ -261,6 +272,9 @@ public class LongArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
+        if (!hasNonNullValue) {
+            return new NullValueBlock(length);
+        }
         return new LongArrayBlock(positionOffset, length, valueIsNull, values);
     }
 
@@ -269,6 +283,9 @@ public class LongArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
+        if (!hasNonNullValue) {
+            return new NullValueBlock(length);
+        }
         boolean[] newValueIsNull = Arrays.copyOfRange(valueIsNull, positionOffset, positionOffset + length);
         long[] newValues = Arrays.copyOfRange(values, positionOffset, positionOffset + length);
         return new LongArrayBlock(length, newValueIsNull, newValues);
