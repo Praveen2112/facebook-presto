@@ -28,14 +28,13 @@ public class NullValueBlock
     private static final int INSTANCE_SIZE = ClassLayout.parseClass(NullValueBlock.class).instanceSize();
 
     private final int positionCount;
-    private final long sizeInBytes;
-    private final long retainedSizeInBytes;
 
     public NullValueBlock(int positionCount)
     {
+        if (positionCount < 0) {
+            throw new IllegalArgumentException("positionCount is negative");
+        }
         this.positionCount = positionCount;
-        this.sizeInBytes = Integer.BYTES;
-        this.retainedSizeInBytes = Integer.BYTES + INSTANCE_SIZE;
     }
 
     @Override
@@ -61,19 +60,19 @@ public class NullValueBlock
     @Override
     public long getSizeInBytes()
     {
-        return sizeInBytes;
+        return 0;
     }
 
     @Override
     public long getRegionSizeInBytes(int position, int length)
     {
-        return sizeInBytes;
+        return 0;
     }
 
     @Override
     public long getRetainedSizeInBytes()
     {
-        return retainedSizeInBytes;
+        return INSTANCE_SIZE;
     }
 
     @Override
@@ -92,7 +91,9 @@ public class NullValueBlock
     public Block copyPositions(int[] positions, int offset, int length)
     {
         checkArrayRange(positions, offset, length);
-
+        for (int i = 0; i < length; i++) {
+            checkReadablePosition(positions[offset + i]);
+        }
         return new NullValueBlock(length);
     }
 
@@ -100,7 +101,6 @@ public class NullValueBlock
     public Block getRegion(int positionOffset, int length)
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
-
         return new NullValueBlock(length);
     }
 
@@ -108,7 +108,6 @@ public class NullValueBlock
     public Block copyRegion(int position, int length)
     {
         checkValidRegion(getPositionCount(), position, length);
-
         return new NullValueBlock(length);
     }
 
@@ -119,14 +118,7 @@ public class NullValueBlock
         return true;
     }
 
-    private void checkReadablePosition(int position)
-    {
-        if (position < 0 || position >= getPositionCount()) {
-            throw new IllegalArgumentException("position is not valid");
-        }
-    }
-
-    //For hashing purpose and for accessing null values
+    // For hashing purpose and for accessing null values
     @Override
     public long getLong(int position, int offset)
     {
@@ -160,5 +152,12 @@ public class NullValueBlock
     {
         checkReadablePosition(position);
         return Slices.EMPTY_SLICE;
+    }
+
+    private void checkReadablePosition(int position)
+    {
+        if (position < 0 || position >= getPositionCount()) {
+            throw new IllegalArgumentException("position is not valid");
+        }
     }
 }

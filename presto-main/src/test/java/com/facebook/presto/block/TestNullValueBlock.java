@@ -11,14 +11,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.facebook.presto.spi.block;
+package com.facebook.presto.block;
 
+import com.facebook.presto.spi.block.Block;
+import com.facebook.presto.spi.block.BlockBuilder;
+import com.facebook.presto.spi.block.ByteArrayBlockBuilder;
+import com.facebook.presto.spi.block.IntArrayBlockBuilder;
+import com.facebook.presto.spi.block.LongArrayBlockBuilder;
+import com.facebook.presto.spi.block.NullValueBlock;
+import com.facebook.presto.spi.block.NullValueBlockEncoding;
+import com.facebook.presto.spi.block.ShortArrayBlockBuilder;
+import io.airlift.slice.Slice;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
 public class TestNullValueBlock
+        extends AbstractTestBlock
 {
+    @Test
+    public void test()
+    {
+        for (int positionCount = 0; positionCount < 10; positionCount++) {
+            assertNullValueBlock(positionCount);
+        }
+    }
+
+    private void assertNullValueBlock(int positionCount)
+    {
+        Slice[] expectedValues = new Slice[positionCount];
+        Block block = new NullValueBlock(positionCount);
+        for (int position = 0; position < positionCount; position++) {
+            expectedValues[position] = null;
+        }
+        assertBlock(block, TestNullValueBlock::createBlockBuilder, expectedValues);
+    }
+
+    private static BlockBuilder createBlockBuilder()
+    {
+        return new LongArrayBlockBuilder(null, 1);
+    }
+
     @Test
     public void testBuildingFromLongArrayBlockBuilder()
     {

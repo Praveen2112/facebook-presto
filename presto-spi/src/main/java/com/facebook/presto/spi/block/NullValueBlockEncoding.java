@@ -38,7 +38,6 @@ public class NullValueBlockEncoding
     public Block readBlock(BlockEncodingSerde blockEncodingSerde, SliceInput sliceInput)
     {
         int positionCount = sliceInput.readInt();
-
         return new NullValueBlock(positionCount);
     }
 }
