@@ -315,6 +315,6 @@ public class LongArrayBlockBuilder
     // Should the above block be replaced with a RLEBlock representing null values.
     private boolean canBeReplacedWithRLEBlock()
     {
-        return !hasNonNullValue && positionCount > 1;
+        return !hasNonNullValue;
     }
 }
