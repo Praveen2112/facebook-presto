@@ -29,6 +29,7 @@ public class ByteArrayBlockBuilder
         implements BlockBuilder
 {
     private static final int INSTANCE_SIZE = ClassLayout.parseClass(ByteArrayBlockBuilder.class).instanceSize();
+    private static final Block NULL_VALUE_BLOCK = new ByteArrayBlock(1, new boolean[] {true}, new byte[1]);
 
     @Nullable
     private BlockBuilderStatus blockBuilderStatus;
@@ -93,10 +94,10 @@ public class ByteArrayBlockBuilder
     @Override
     public Block build()
     {
-        if (hasNonNullValue) {
-            return new ByteArrayBlock(positionCount, valueIsNull, values);
+        if (!hasNonNullValue) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, positionCount);
         }
-        return new NullValueBlock(positionCount);
+        return new ByteArrayBlock(positionCount, valueIsNull, values);
     }
 
     @Override
@@ -202,7 +203,7 @@ public class ByteArrayBlockBuilder
         checkArrayRange(positions, offset, length);
 
         if (!hasNonNullValue) {
-            return new NullValueBlock(positionCount);
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, positionCount);
         }
 
         boolean[] newValueIsNull = new boolean[length];
@@ -222,7 +223,7 @@ public class ByteArrayBlockBuilder
         checkValidRegion(getPositionCount(), positionOffset, length);
 
         if (!hasNonNullValue) {
-            return new NullValueBlock(positionCount);
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, positionCount);
         }
         return new ByteArrayBlock(positionOffset, length, valueIsNull, values);
     }
@@ -233,7 +234,7 @@ public class ByteArrayBlockBuilder
         checkValidRegion(getPositionCount(), positionOffset, length);
 
         if (!hasNonNullValue) {
-            return new NullValueBlock(positionCount);
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, positionCount);
         }
         boolean[] newValueIsNull = Arrays.copyOfRange(valueIsNull, positionOffset, positionOffset + length);
         byte[] newValues = Arrays.copyOfRange(values, positionOffset, positionOffset + length);

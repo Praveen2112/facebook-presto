@@ -30,6 +30,7 @@ public class IntArrayBlockBuilder
         implements BlockBuilder
 {
     private static final int INSTANCE_SIZE = ClassLayout.parseClass(IntArrayBlockBuilder.class).instanceSize();
+    private static final Block NULL_VALUE_BLOCK = new IntArrayBlock(1, new boolean[] {true}, new int[1]);
 
     @Nullable
     private BlockBuilderStatus blockBuilderStatus;
@@ -95,12 +96,10 @@ public class IntArrayBlockBuilder
     @Override
     public Block build()
     {
-        if (hasNonNullValue) {
-            return new IntArrayBlock(positionCount, valueIsNull, values);
+        if (!hasNonNullValue) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, positionCount);
         }
-        else {
-            return new NullValueBlock(positionCount);
-        }
+        return new IntArrayBlock(positionCount, valueIsNull, values);
     }
 
     @Override
@@ -206,7 +205,7 @@ public class IntArrayBlockBuilder
         checkArrayRange(positions, offset, length);
 
         if (!hasNonNullValue) {
-            return new NullValueBlock(length);
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
 
         boolean[] newValueIsNull = new boolean[length];
@@ -226,7 +225,7 @@ public class IntArrayBlockBuilder
         checkValidRegion(getPositionCount(), positionOffset, length);
 
         if (!hasNonNullValue) {
-            return new NullValueBlock(length);
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         return new IntArrayBlock(positionOffset, length, valueIsNull, values);
     }
@@ -237,7 +236,7 @@ public class IntArrayBlockBuilder
         checkValidRegion(getPositionCount(), positionOffset, length);
 
         if (!hasNonNullValue) {
-            return new NullValueBlock(length);
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         boolean[] newValueIsNull = Arrays.copyOfRange(valueIsNull, positionOffset, positionOffset + length);
         int[] newValues = Arrays.copyOfRange(values, positionOffset, positionOffset + length);

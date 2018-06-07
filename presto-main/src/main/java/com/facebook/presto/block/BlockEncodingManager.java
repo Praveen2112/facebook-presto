@@ -24,7 +24,6 @@ import com.facebook.presto.spi.block.IntArrayBlockEncoding;
 import com.facebook.presto.spi.block.LazyBlockEncoding;
 import com.facebook.presto.spi.block.LongArrayBlockEncoding;
 import com.facebook.presto.spi.block.MapBlockEncoding;
-import com.facebook.presto.spi.block.NullValueBlockEncoding;
 import com.facebook.presto.spi.block.RowBlockEncoding;
 import com.facebook.presto.spi.block.RunLengthBlockEncoding;
 import com.facebook.presto.spi.block.ShortArrayBlockEncoding;
@@ -77,7 +76,6 @@ public final class BlockEncodingManager
         addBlockEncoding(new SingleRowBlockEncoding());
         addBlockEncoding(new RunLengthBlockEncoding());
         addBlockEncoding(new LazyBlockEncoding());
-        addBlockEncoding(new NullValueBlockEncoding());
 
         for (BlockEncoding blockEncoding : requireNonNull(blockEncodings, "blockEncodings is null")) {
             addBlockEncoding(blockEncoding);
