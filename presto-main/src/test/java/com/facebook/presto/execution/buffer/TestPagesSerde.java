@@ -71,6 +71,7 @@ public class TestPagesSerde
 
         // page with one value
         BIGINT.writeLong(builder, 123);
+        pageSize = 35; //Now we have moved to the normal block implementation so the page size overhead is 35.
         page = new Page(builder.build());
         int firstValueSize = serializedSize(ImmutableList.of(BIGINT), page) - pageSize;
         assertEquals(firstValueSize, 9); // value size + value overhead
