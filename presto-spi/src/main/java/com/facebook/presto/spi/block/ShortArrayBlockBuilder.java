@@ -30,6 +30,7 @@ public class ShortArrayBlockBuilder
         implements BlockBuilder
 {
     private static final int INSTANCE_SIZE = ClassLayout.parseClass(ShortArrayBlockBuilder.class).instanceSize();
+    private static final Block NULL_VALUE_BLOCK = new ShortArrayBlock(1, new boolean[]{true}, new short[1]);
 
     @Nullable
     private BlockBuilderStatus blockBuilderStatus;
@@ -95,12 +96,10 @@ public class ShortArrayBlockBuilder
     @Override
     public Block build()
     {
-        if (hasNonNullValue) {
-            return new ShortArrayBlock(positionCount, valueIsNull, values);
+        if (canBeReplacedWithRLEBlock()) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, positionCount);
         }
-        else {
-            return new NullValueBlock(positionCount);
-        }
+        return new ShortArrayBlock(positionCount, valueIsNull, values);
     }
 
     @Override
@@ -127,7 +126,7 @@ public class ShortArrayBlockBuilder
 
     private void updateDataSize()
     {
-        retainedSizeInBytes = INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values);
+        retainedSizeInBytes = INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values) + NULL_VALUE_BLOCK.getRetainedSizeInBytes();
         if (blockBuilderStatus != null) {
             retainedSizeInBytes += BlockBuilderStatus.INSTANCE_SIZE;
         }
@@ -205,8 +204,8 @@ public class ShortArrayBlockBuilder
     {
         checkArrayRange(positions, offset, length);
 
-        if (!hasNonNullValue) {
-            return new NullValueBlock(length);
+        if (canBeReplacedWithRLEBlock()) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         boolean[] newValueIsNull = new boolean[length];
         short[] newValues = new short[length];
@@ -224,8 +223,8 @@ public class ShortArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
-        if (!hasNonNullValue) {
-            return new NullValueBlock(length);
+        if (canBeReplacedWithRLEBlock()) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         return new ShortArrayBlock(positionOffset, length, valueIsNull, values);
     }
@@ -235,8 +234,8 @@ public class ShortArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
-        if (!hasNonNullValue) {
-            return new NullValueBlock(length);
+        if (canBeReplacedWithRLEBlock()) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         boolean[] newValueIsNull = Arrays.copyOfRange(valueIsNull, positionOffset, positionOffset + length);
         short[] newValues = Arrays.copyOfRange(values, positionOffset, positionOffset + length);
@@ -263,5 +262,11 @@ public class ShortArrayBlockBuilder
         if (position < 0 || position >= getPositionCount()) {
             throw new IllegalArgumentException("position is not valid");
         }
+    }
+
+    // Should the above block be replaced with a RLEBlock representing null values.
+    private boolean canBeReplacedWithRLEBlock()
+    {
+        return !hasNonNullValue && positionCount > 1;
     }
 }

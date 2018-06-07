@@ -31,6 +31,7 @@ public class LongArrayBlockBuilder
         implements BlockBuilder
 {
     private static final int INSTANCE_SIZE = ClassLayout.parseClass(LongArrayBlockBuilder.class).instanceSize();
+    private static final Block NULL_VALUE_BLOCK = new LongArrayBlock(1, new boolean[]{true}, new long[1]);
 
     @Nullable
     private BlockBuilderStatus blockBuilderStatus;
@@ -97,12 +98,10 @@ public class LongArrayBlockBuilder
     @Override
     public Block build()
     {
-        if (hasNonNullValue) {
-            return new LongArrayBlock(positionCount, valueIsNull, values);
+        if (canBeReplacedWithRLEBlock()) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, positionCount);
         }
-        else {
-            return new NullValueBlock(positionCount);
-        }
+        return new LongArrayBlock(positionCount, valueIsNull, values);
     }
 
     @Override
@@ -129,7 +128,7 @@ public class LongArrayBlockBuilder
 
     private void updateDataSize()
     {
-        retainedSizeInBytes = INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values);
+        retainedSizeInBytes = INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values) + NULL_VALUE_BLOCK.getRetainedSizeInBytes();
         if (blockBuilderStatus != null) {
             retainedSizeInBytes += BlockBuilderStatus.INSTANCE_SIZE;
         }
@@ -253,8 +252,8 @@ public class LongArrayBlockBuilder
     {
         checkArrayRange(positions, offset, length);
 
-        if (!hasNonNullValue) {
-            return new NullValueBlock(length);
+        if (canBeReplacedWithRLEBlock()) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         boolean[] newValueIsNull = new boolean[length];
         long[] newValues = new long[length];
@@ -272,8 +271,8 @@ public class LongArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
-        if (!hasNonNullValue) {
-            return new NullValueBlock(length);
+        if (canBeReplacedWithRLEBlock()) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         return new LongArrayBlock(positionOffset, length, valueIsNull, values);
     }
@@ -283,8 +282,8 @@ public class LongArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
-        if (!hasNonNullValue) {
-            return new NullValueBlock(length);
+        if (canBeReplacedWithRLEBlock()) {
+            return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         boolean[] newValueIsNull = Arrays.copyOfRange(valueIsNull, positionOffset, positionOffset + length);
         long[] newValues = Arrays.copyOfRange(values, positionOffset, positionOffset + length);
@@ -311,5 +310,11 @@ public class LongArrayBlockBuilder
         if (position < 0 || position >= getPositionCount()) {
             throw new IllegalArgumentException("position is not valid");
         }
+    }
+
+    // Should the above block be replaced with a RLEBlock representing null values.
+    private boolean canBeReplacedWithRLEBlock()
+    {
+        return !hasNonNullValue && positionCount > 1;
     }
 }
