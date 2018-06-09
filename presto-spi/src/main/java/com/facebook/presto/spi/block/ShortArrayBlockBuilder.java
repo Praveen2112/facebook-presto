@@ -96,7 +96,7 @@ public class ShortArrayBlockBuilder
     @Override
     public Block build()
     {
-        if (canBeReplacedWithRLEBlock()) {
+        if (!hasNonNullValue) {
             return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, positionCount);
         }
         return new ShortArrayBlock(positionCount, valueIsNull, values);
@@ -204,7 +204,7 @@ public class ShortArrayBlockBuilder
     {
         checkArrayRange(positions, offset, length);
 
-        if (canBeReplacedWithRLEBlock()) {
+        if (!hasNonNullValue) {
             return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         boolean[] newValueIsNull = new boolean[length];
@@ -223,7 +223,7 @@ public class ShortArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
-        if (canBeReplacedWithRLEBlock()) {
+        if (!hasNonNullValue) {
             return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         return new ShortArrayBlock(positionOffset, length, valueIsNull, values);
@@ -234,7 +234,7 @@ public class ShortArrayBlockBuilder
     {
         checkValidRegion(getPositionCount(), positionOffset, length);
 
-        if (canBeReplacedWithRLEBlock()) {
+        if (!hasNonNullValue) {
             return new RunLengthEncodedBlock(NULL_VALUE_BLOCK, length);
         }
         boolean[] newValueIsNull = Arrays.copyOfRange(valueIsNull, positionOffset, positionOffset + length);
@@ -262,11 +262,5 @@ public class ShortArrayBlockBuilder
         if (position < 0 || position >= getPositionCount()) {
             throw new IllegalArgumentException("position is not valid");
         }
-    }
-
-    // Should the above block be replaced with a RLEBlock representing null values.
-    private boolean canBeReplacedWithRLEBlock()
-    {
-        return !hasNonNullValue;
     }
 }
