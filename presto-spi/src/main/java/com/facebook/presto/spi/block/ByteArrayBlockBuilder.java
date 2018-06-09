@@ -124,7 +124,7 @@ public class ByteArrayBlockBuilder
 
     private void updateDataSize()
     {
-        retainedSizeInBytes = INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values) + NULL_VALUE_BLOCK.getRetainedSizeInBytes();
+        retainedSizeInBytes = INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values);
         if (blockBuilderStatus != null) {
             retainedSizeInBytes += BlockBuilderStatus.INSTANCE_SIZE;
         }
