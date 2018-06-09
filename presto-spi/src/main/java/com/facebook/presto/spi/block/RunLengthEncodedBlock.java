@@ -50,7 +50,6 @@ public class RunLengthEncodedBlock
             throw new IllegalArgumentException(format("Expected value to contain a single position but has %s positions", value.getPositionCount()));
         }
 
-        // value can be a RunLengthEncodedBlock if it is used to represent null values.
         if (value instanceof RunLengthEncodedBlock) {
             this.value = ((RunLengthEncodedBlock) value).getValue();
         }
