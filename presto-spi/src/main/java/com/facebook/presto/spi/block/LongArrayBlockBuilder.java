@@ -31,7 +31,7 @@ public class LongArrayBlockBuilder
         implements BlockBuilder
 {
     private static final int INSTANCE_SIZE = ClassLayout.parseClass(LongArrayBlockBuilder.class).instanceSize();
-    private static final Block NULL_VALUE_BLOCK = new LongArrayBlock(1, new boolean[]{true}, new long[1]);
+    private static final Block NULL_VALUE_BLOCK = new LongArrayBlock(1, new boolean[] {true}, new long[1]);
 
     @Nullable
     private BlockBuilderStatus blockBuilderStatus;

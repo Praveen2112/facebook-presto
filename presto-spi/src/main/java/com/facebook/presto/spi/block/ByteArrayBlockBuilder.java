@@ -29,7 +29,7 @@ public class ByteArrayBlockBuilder
         implements BlockBuilder
 {
     private static final int INSTANCE_SIZE = ClassLayout.parseClass(ByteArrayBlockBuilder.class).instanceSize();
-    private static final Block NULL_VALUE_BLOCK = new ByteArrayBlock(1, new boolean[]{true}, new byte[1]);
+    private static final Block NULL_VALUE_BLOCK = new ByteArrayBlock(1, new boolean[] {true}, new byte[1]);
 
     @Nullable
     private BlockBuilderStatus blockBuilderStatus;
